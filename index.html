@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attribute Heatmap + Value Index</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+
+<body>
+  
+  <div id="app">
+    
+    <div id="controls">
+      <!-- SIMULATION & DECAY -->
+      <h2>Simulation</h2>
+      <p class="hint">Global controls for time, decay, and world behavior.</p>
+      <div class="panel">
+        <h3>Time & Ticks</h3>
+        <p class="hint">Defines how fast the simulation updates (ticks per minute).</p>
+        <div class="row tiny-row">
+          <button id="timeToggleBtn">Start</button>
+          <button id="timeResetBtn" class="secondary">Reset time</button>
+          <span id="simStatus" class="sim-status">Paused</span>
+        </div>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Ticks per minute
+            <input id="ticksPerMin" type="range" min="1" max="600" step="1" value="60">
+            <span id="ticksPerMinVal" class="tiny-box">60</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Decay Dynamics</h3>
+        <p class="hint">How quickly miniatures decay or recover depending on the Value Index at their position.</p>
+
+        <div class="row tiny-row">
+          <label class="small-label">
+            Decay speed (k₍bad₎)
+            <input id="kBadSlider" type="range" min="0" max="1" step="0.01" value="0.40">
+            <span id="kBadVal" class="tiny-box">0.40</span>
+          </label>
+        </div>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Repair speed (k₍good₎)
+            <input id="kGoodSlider" type="range" min="0" max="1" step="0.01" value="0.20">
+            <span id="kGoodVal" class="tiny-box">0.20</span>
+          </label>
+        </div>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Instability (noise)
+            <input id="noiseSlider" type="range" min="0" max="0.5" step="0.01" value="0.05">
+            <span id="noiseVal" class="tiny-box">0.05</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Decay Feedback</h3>
+        <p class="hint">Determines how decay modifies a miniature’s influence radius and attribute strength.</p>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Radius affected by decay
+            <input id="decayRadiusInfluence" type="range" min="0" max="1" step="0.01" value="1.00">
+            <span id="decayRadiusInfluenceVal" class="tiny-box">1.00</span>
+          </label>
+        </div>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Attributes affected by decay
+            <input id="decayAttrInfluence" type="range" min="0" max="1" step="0.01" value="0.50">
+            <span id="decayAttrInfluenceVal" class="tiny-box">0.50</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- MINIATURES & PLACEMENT -->
+      <h2>Miniatures</h2>
+      <p class="hint">Miniatures are placed elements with attributes affecting the world.</p>
+
+      <div class="panel">
+        <h3>Placement</h3>
+        <p class="hint">Choose how and where new miniatures are added to the map.</p>
+        <div class="row top-buttons">
+          <button id="placeBtn">Place miniature</button>
+          <button id="resetBtn" class="secondary">Reset grid</button>
+        </div>
+
+        <div class="row tiny-row">
+          <label class="small-label">
+            Place multiple
+            <input id="multiCount" type="number" min="1" max="1000" value="10" style="width:70px;">
+          </label>
+          <button id="placeManyBtn">Place many</button>
+        </div>
+
+        <h4 class="subheading">Location</h4>
+        <div class="row">
+          <label>
+            X
+            <input id="xInput" type="number" min="0" max="63" value="0">
+          </label>
+          <label>
+            Y
+            <input id="yInput" type="number" min="0" max="63" value="0">
+          </label>
+        </div>
+        <div class="row tiny-row">
+          <label class="checkbox-label">
+            <input id="randLoc" type="checkbox"> Random location
+          </label>
+        </div>
+        <p class="hint">Tip: you can also click on the heatmap to place a miniature at that cell.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Attributes</h3>
+        <p class="hint">Attribute values used when placing a new miniature.</p>
+        <div id="attrInputs"></div>
+        <div class="row tiny-row">
+          <label class="checkbox-label">
+            <input id="randAttr" type="checkbox"> Random attributes
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Per Attribute Radius</h3>
+        <p class="hint">How far each attribute spreads its influence across the world grid.</p>
+        <div id="radiusInputs"></div>
+        <div class="row tiny-row">
+          <label class="checkbox-label">
+            <input id="randRadius" type="checkbox"> Random radii
+          </label>
+      </div>
+      <p class="hint">Randomizes the radius of each attribute for newly placed miniatures.</p>
+
+      </div>
+
+      <!-- VALUE INDEX -->
+      <h2>Value Index</h2>
+
+      <div class="panel">
+        <h3>Value Index Tuners</h3>
+        <p class="hint">Adjust how the Value Index (VI) is generated from attributes.</p>
+        <div class="section">
+          <div class="section-title">Linear weights</div>
+          <p class="hint">How strongly each attribute pushes VI up or down.</p>
+          <div id="viWeights"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Synergies</div>
+          <p class="hint">Extra boost when two attributes are strong together.</p>
+          <div id="viSynergies"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>VI Penalty & Targets</h3>
+        <div class="section">
+          <div class="section-title">Penalty & targets</div>
+          <p class="hint">Ideal band & how harshly extremes are punished.</p>
+          <div id="viPenaltyTargets"></div>
+          <div class="row tiny-row">
+            <label class="small-label">
+              Global tolerance τ
+              <input id="viTau" type="range" min="0" max="0.5" step="0.01" value="0.45">
+              <span id="viTauVal" class="tiny-box">0.45</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Stability & squash</div>
+          <div id="viGlobal"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Non-Human Index</h3>
+        <p class="hint">Represents the influence of ruined miniatures on the landscape.</p>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Ruin threshold (decay ≥ t)
+            <input id="nhThreshold" type="range" min="0.5" max="1" step="0.01" value="0.75">
+            <span id="nhThresholdVal" class="tiny-box">0.75</span>
+          </label>
+        </div>
+        <div class="row tiny-row">
+          <label class="small-label">
+            Spread radius factor
+            <input id="nhRadius" type="range" min="0" max="1" step="0.01" value="0.60">
+            <span id="nhRadiusVal" class="tiny-box">0.60</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div id="visual">
+      
+      <!-- Tabs (VI + NHI + 9 attributes) -->
+      <div id="attrTabs"></div>
+
+      <!-- Main heatmap canvas -->
+      <div id="canvasWrapper">
+        <canvas id="heatCanvas" width="512" height="512"></canvas>
+
+        <!-- Hover overlays -->
+        <div id="miniInfo" class="corner-label top-right hidden"></div>
+        <div id="valueInfo" class="corner-label bottom-right hidden"></div>
+      </div>
+
+      <!-- Miniature list below heatmap -->
+      <div id="miniListPanel">
+        <div class="mini-list-title">Miniatures</div>
+        <div id="miniList"></div>
+      </div>
+      <button id="infoBtn">More Info</button>
+
+<div id="infoModal" class="hidden">
+  <div class="modal-content">
+    <button id="closeInfo">Close</button>
+    <div id="infoText">
+      <div style="font-family: sans-serif; line-height: 1.45; font-size: 14px; color: #333;">
+  
+            <h2 style="margin-top:0;">Test Mechanics for <i>The Model Nation</i></h2>
+
+            <p>
+              Simulates how symbolic, political, cultural, and social forces 
+              interact across a grid-based landscape. When placing miniatures on the map, you can observe 
+              how values spread, how different forces collide or reinforce one another, how decay emerges, 
+              and how ruins leave behind a residual presence.
+            </p>
+
+            <h3>Miniatures</h3>
+            <p>
+              Miniatures act as agents within the system. Each one has:
+              <ul>
+                <li>A position on the grid</li>
+                <li>Nine sociopolitical attributes, each ranging from −1 to +1</li>
+                <li>A radius per attribute, determining how far its influence spreads</li>
+                <li>A decay index from 0 (new) to 1 (ruin)</li>
+                <li>A “state” determined by decay: Prototype, Transparent, Model, or Ruin</li>
+              </ul>
+              These agents influence the world around them, and the world responds through time-dependent changes.
+            </p>
+
+            <h3>Heatmaps</h3>
+            <p>
+              The system generates several heatmap layers:
+            </p>
+            <ul>
+              <li><strong>Attribute heatmaps</strong> showing the spatial intensity of each attribute.</li>
+              <li><strong>Value Index (VI)</strong>, a composite score combining all attributes through weighted contributions, synergies, penalties, and stability terms.</li>
+              <li><strong>Non-Human Index (NHI)</strong>, created by miniatures that have reached a ruined state, representing post-human or abandoned zones.</li>
+            </ul>
+            <p>
+              All heatmaps update in real time as the miniature configuration changes.
+            </p>
+
+            <h3>Value Index (VI)</h3>
+            <p>
+              The Value Index compresses the nine attributes into a single interpretable value. 
+              It uses:
+            </p>
+            <ul>
+              <li>Linear weights for each attribute</li>
+              <li>Synergy terms between specific attribute pairs</li>
+              <li>Penalties for extreme or off-target values</li>
+              <li>A stability bonus based on certain combinations</li>
+              <li>A nonlinear squashing step to keep results within −1 to +1</li>
+            </ul>
+            <p>
+              The VI is configurable through sliders, allowing exploration of different “world logics.”
+            </p>
+
+            <h3>Time and Decay</h3>
+            <p>
+              A tick-based simulation drives the temporal behavior. Each miniature periodically samples 
+              the Value Index beneath it:
+            </p>
+            <ul>
+              <li>Negative VI causes decay to increase.</li>
+              <li>Positive VI allows partial recovery.</li>
+            </ul>
+            <p>
+              As decay grows, the miniature’s attributes weaken and its radii contract. Eventually, 
+              it transitions into a ruined state, which then contributes to the Non-Human Index.
+              This creates a closed feedback loop between attributes, the environment, and time.
+            </p>
+
+            <h3>Non-Human Index (NHI)</h3>
+            <p>
+              When miniatures become ruined, they begin generating a separate diffusion field. 
+              This produces the Non-Human Index, representing residual presence, abandonment, or 
+              post-human influence. It acts as an additional layer of spatial memory.
+            </p>
+
+            <h3>Interaction</h3>
+            <p>
+              You can:
+            </p>
+            <ul>
+              <li>Place miniatures manually or at random positions</li>
+              <li>Randomize attributes and radii</li>
+              <li>Click-to-place directly on the heatmap</li>
+              <li>Hover to inspect miniature data or local values on the heatmap</li>
+              <li>Run, pause, and reset the tick-based simulation</li>
+              <li>Adjust all parameters of the Value Index and decay behaviour live</li>
+            </ul>
+
+
+          </div>
+<!-- Insert the explanation here -->
+    </div>
+  </div>
+</div>
+
+    </div>
+    
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
