@@ -40,21 +40,21 @@
         <div class="row tiny-row">
           <label class="small-label">
             Decay speed (k₍bad₎)
-            <input id="kBadSlider" type="range" min="0" max="1" step="0.01" value="0.40">
+            <input id="kBadSlider" type="range" min="0" max="1" step="0.01" value="0.10">
             <span id="kBadVal" class="tiny-box">0.40</span>
           </label>
         </div>
         <div class="row tiny-row">
           <label class="small-label">
             Repair speed (k₍good₎)
-            <input id="kGoodSlider" type="range" min="0" max="1" step="0.01" value="0.20">
+            <input id="kGoodSlider" type="range" min="0" max="1" step="0.01" value="0.10">
             <span id="kGoodVal" class="tiny-box">0.20</span>
           </label>
         </div>
         <div class="row tiny-row">
           <label class="small-label">
             Instability (noise)
-            <input id="noiseSlider" type="range" min="0" max="0.5" step="0.01" value="0.05">
+            <input id="noiseSlider" type="range" min="0" max="0.5" step="0.01" value="0.33">
             <span id="noiseVal" class="tiny-box">0.05</span>
           </label>
         </div>
@@ -124,7 +124,7 @@
         <div id="attrInputs"></div>
         <div class="row tiny-row">
           <label class="checkbox-label">
-            <input id="randAttr" type="checkbox"> Random attributes
+            <input id="randAttr" type="checkbox" checked> Random attributes
           </label>
         </div>
       </div>
@@ -135,7 +135,7 @@
         <div id="radiusInputs"></div>
         <div class="row tiny-row">
           <label class="checkbox-label">
-            <input id="randRadius" type="checkbox"> Random radii
+            <input id="randRadius" type="checkbox" checked> Random radii
           </label>
       </div>
       <p class="hint">Randomizes the radius of each attribute for newly placed miniatures.</p>
